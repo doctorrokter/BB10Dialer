@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.support.constraint.ConstraintLayout;
+import android.support.constraint.ConstraintSet;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -18,7 +19,7 @@ public class CallActivity extends AppCompatActivity {
 
     private PointF downPT = new PointF();
     private PointF startPT = new PointF();
-    private PointF defaultPT = new PointF();
+    private double movedInPercents = 0d;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,31 +31,32 @@ public class CallActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
         ImageView movingCircle = findViewById(R.id.movingCircle);
         ImageView answerGradigntBg = findViewById(R.id.answerGradientBackground);
         ImageView declineGradigntBg = findViewById(R.id.declineGradientBackground);
-        ConstraintLayout callSwitcher = findViewById(R.id.callSwitcher);
+        ImageView answerShape = findViewById(R.id.answerShape);
+        ImageView declineShape = findViewById(R.id.declineShape);
 
-        defaultPT.set(movingCircle.getX(), movingCircle.getY());
+        ConstraintLayout callSwitcher = findViewById(R.id.callSwitcher);
 
         movingCircle.setOnTouchListener((View v, MotionEvent event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_MOVE:
                     movingCircle.setX((int)(startPT.x + event.getX() - downPT.x));
-                    Log.d(TAG, "onResume: default x = " + defaultPT.x + ", current x = " + movingCircle.getX());
+                    Log.d(TAG, "onResume: start x = " + startPT.x + ", current x = " + movingCircle.getX());
 
                     double pathLength = callSwitcher.getWidth() / 2;
-                    double movedInPercents = Math.abs((movingCircle.getX() * 100) / pathLength);
+                    this.movedInPercents = Math.abs((movingCircle.getX() * 100) / pathLength);
 
-                    Log.d(TAG, "onResume: percentage = " + movedInPercents);
-
-                    if (movingCircle.getX() < defaultPT.x) {
+                    if (movingCircle.getX() < startPT.x) {
                         declineGradigntBg.setAlpha(0f);
                         answerGradigntBg.setAlpha(Math.abs((float)(movingCircle.getX() * 0.001)));
                     } else {
                         answerGradigntBg.setAlpha(0f);
                         declineGradigntBg.setAlpha(Math.abs((float)(movingCircle.getX() * 0.001)));
                     }
+
                     break;
                 case MotionEvent.ACTION_DOWN:
                     downPT.set(event.getX(), event.getY());
@@ -63,7 +65,19 @@ public class CallActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_UP:
                     declineGradigntBg.setAlpha(0f);
                     answerGradigntBg.setAlpha(0f);
-                    movingCircle.setX(defaultPT.x);
+
+                    if (this.movedInPercents >= 50) {
+                        float val = callSwitcher.getWidth() / 2.65f;
+                        if (movingCircle.getX() < 0.0) {
+                            movingCircle.setX(-val);
+                        } else {
+                            movingCircle.setX(val);
+                        }
+
+                    } else {
+                        movingCircle.setX(startPT.x);
+                    }
+
                     break;
 
             }
