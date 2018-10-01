@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        offerReplacingDefaultDialer();
+//        offerReplacingDefaultDialer();
     }
 
     private void makeCall() {
